@@ -3,6 +3,7 @@ package com.talenitca.mealspiceandroid.utils;
 import com.talenitca.mealspiceandroid.data.models.Restaurant;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Scanner;
 
@@ -18,15 +19,15 @@ public class Runner {
 
         Disposable d = data.subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.trampoline())
-                .subscribe(System.out::println,
-                        System.out::println);
+                .subscribe(System.out::println, throwable -> System.out.println("ERROR...."));
 
         System.out.println("-------------------------------------------");
         System.out.println("Dependency Injection");
         System.out.println("-------------------------------------------");
 
         MyUtils myUtils = new MyUtils();
-        System.out.println("test MyUtils: " + myUtils.welcomeCustomer("Kaushal"));
+        System.out.println("test MyUtils: " + myUtils.welcomeCustomer(Calendar.getInstance(),
+                "Kaushal"));
         System.out.println(TestUtils.getMockedRestaurantListBIG().get(0).getName());
 
         System.out.println("-------------------------------------------");
@@ -38,8 +39,8 @@ public class Runner {
 
         Disposable d2 = restaurantObservable.subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.trampoline())
-                .filter(restaurant -> restaurant.getRating() <= 4)
-                .map(restaurant -> restaurant.getName() + "[Serving since " + restaurant.getEstablished() + "]")
+                .filter(restaurant -> restaurant.getRating() >= 4)
+                .map(restaurant -> restaurant.getName() + "[Rating " + restaurant.getRating() + "]")
                 .subscribe(System.out::println,
                         throwable -> System.out.println(throwable.getMessage())
                 );

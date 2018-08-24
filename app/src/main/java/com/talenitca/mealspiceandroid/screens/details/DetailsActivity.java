@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 
 @DetailsActivityScope
 public class DetailsActivity extends AppCompatActivity implements DetailsContract.View {
@@ -81,8 +80,7 @@ public class DetailsActivity extends AppCompatActivity implements DetailsContrac
 
         // imgFavourite.setOnClickListener(v -> presenter.onFavouriteTapped());
         RxView.clicks(imgFavourite)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(AndroidSchedulers.mainThread())
                 .throttleFirst(1000, TimeUnit.MILLISECONDS)
                 .subscribe(o -> {
                     Log.d("favClick", "initializeUI: click registered");
@@ -92,9 +90,7 @@ public class DetailsActivity extends AppCompatActivity implements DetailsContrac
         fabUpdate = findViewById(R.id.fab_edit_details);
 
         RxView.clicks(fabUpdate)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .throttleFirst(1000, TimeUnit.MILLISECONDS)
+                .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(o -> {
                     Log.d("edit / save clicked", "initializeUI: click registered");
                     if (isEditMode) {

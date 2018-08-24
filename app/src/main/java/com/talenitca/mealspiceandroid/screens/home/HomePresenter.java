@@ -6,10 +6,10 @@ import com.talenitca.mealspiceandroid.di.Background;
 import com.talenitca.mealspiceandroid.di.Foreground;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import io.reactivex.Scheduler;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 
 public class HomePresenter implements HomeContract.Presenter {
 
@@ -25,26 +25,26 @@ public class HomePresenter implements HomeContract.Presenter {
                          @Foreground Scheduler foregroundScheduler) {
         this.view = view;
         this.dataManager = dataManager;
+        compositeDisposable = new CompositeDisposable();
         this.backgroundScheduler = backgroundScheduler;
         this.foregroundScheduler = foregroundScheduler;
-        compositeDisposable = new CompositeDisposable();
     }
 
 
     @Override
     public void fetchAllData() {
         view.showLoading();
-        compositeDisposable.add(
-                dataManager.fetchAllRestaurants(1)
-                        .subscribeOn(backgroundScheduler)
-                        .observeOn(foregroundScheduler)
-                        .doOnComplete(() -> view.hideLoading())
-                        .subscribe(restaurants -> view.loadRestaurants(restaurants),
-                                throwable -> {
-                                    view.onError(throwable);
-                                    view.hideLoading();
-                                })
-        );
+
+        Disposable d = dataManager.fetchAllRestaurants(1)
+                .subscribeOn(backgroundScheduler)
+                .observeOn(foregroundScheduler)
+                .doOnComplete(() -> view.hideLoading())
+                .subscribe(restaurants -> view.loadRestaurants(restaurants),
+                        throwable -> {
+                            view.onError(throwable);
+                            view.hideLoading();
+                        });
+        compositeDisposable.add(d);
     }
 
     @Override

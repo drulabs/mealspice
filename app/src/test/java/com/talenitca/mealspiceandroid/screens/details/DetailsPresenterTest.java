@@ -12,6 +12,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import io.reactivex.schedulers.Schedulers;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNull;
@@ -35,7 +37,8 @@ public class DetailsPresenterTest {
 
     @Before
     public void setUp() throws Exception {
-        presenter = new DetailsPresenter(view, dataManager);
+        presenter = new DetailsPresenter(view, dataManager, Schedulers.trampoline(), Schedulers
+                .trampoline());
 
     }
 

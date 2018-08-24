@@ -9,7 +9,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -44,7 +43,8 @@ public class HomePresenterTest {
     public void setUp() throws Exception {
         when(dataManager.fetchAllRestaurants(1)).thenReturn(
                 Observable.just(TestUtils.getMockedRestaurantList()));
-        presenter = new HomePresenter(view, dataManager, Schedulers.trampoline(), Schedulers.trampoline());
+        presenter = new HomePresenter(view, dataManager, Schedulers.trampoline(), Schedulers
+                .trampoline());
 
     }
 

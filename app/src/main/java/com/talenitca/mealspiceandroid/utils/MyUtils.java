@@ -4,9 +4,9 @@ import java.util.Calendar;
 
 public class MyUtils {
 
-    private Calendar calendar = Calendar.getInstance();
+    private Calendar calendar;
 
-    public String welcomeCustomer(String name) {
+    public String welcomeCustomer(Calendar calendar, String name) {
         int hourOfDay = calendar.get(Calendar.HOUR_OF_DAY);
         if (hourOfDay >= 6 && hourOfDay <= 12) {
             return "Good morning " + name;

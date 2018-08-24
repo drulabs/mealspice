@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import io.reactivex.Scheduler;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 
 public class DetailsPresenter implements DetailsContract.Presenter {
 
@@ -36,32 +37,33 @@ public class DetailsPresenter implements DetailsContract.Presenter {
     @Override
     public void start(String restaurantSlug) {
         view.showLoading();
-        compositeDisposable.add(
-                dataManager.fetchRestaurantDetails(restaurantSlug)
-                        .subscribeOn(backgroundScheduler)
-                        .observeOn(foregroundScheduler)
-                        .doOnComplete(() -> view.hideLoading())
-                        .subscribe(restaurant -> {
-                            this.currentRestaurant = restaurant;
-                            view.loadRestaurantPic(restaurant.getPic());
-                            view.loadAddress(restaurant.getAddress() + " " + restaurant.getCountry());
-                            view.loadCuisine(restaurant.getCuisine());
-                            view.loadRatings(String.valueOf(restaurant.getRating()));
-                            view.loadRestaurantName(restaurant.getName());
-                            view.loadTagline(restaurant.getTagline());
-                        }, throwable -> {
-                            view.hideLoading();
-                            view.onError(throwable);
-                        })
-        );
 
-        compositeDisposable.add(
-                dataManager.getRestaurant(restaurantSlug)
-                        .subscribeOn(backgroundScheduler)
-                        .observeOn(foregroundScheduler)
-                        .subscribe(restaurant -> view.setFavouriteStatus(restaurant != null),
-                                throwable -> view.setFavouriteStatus(false))
-        );
+        Disposable restaurantDisposable = dataManager.fetchRestaurantDetails(restaurantSlug)
+                .subscribeOn(backgroundScheduler)
+                .observeOn(foregroundScheduler)
+                .doOnComplete(() -> view.hideLoading())
+                .subscribe(restaurant -> {
+                    this.currentRestaurant = restaurant;
+                    view.loadRestaurantPic(restaurant.getPic());
+                    view.loadAddress(restaurant.getAddress() + " " + restaurant.getCountry());
+                    view.loadCuisine(restaurant.getCuisine());
+                    view.loadRatings(String.valueOf(restaurant.getRating()));
+                    view.loadRestaurantName(restaurant.getName());
+                    view.loadTagline(restaurant.getTagline());
+                }, throwable -> {
+                    view.hideLoading();
+                    view.onError(throwable);
+                });
+        compositeDisposable.add(restaurantDisposable);
+
+
+        Disposable d = dataManager.getRestaurant(restaurantSlug)
+                .subscribeOn(backgroundScheduler)
+                .observeOn(foregroundScheduler)
+                .subscribe(restaurant -> view.setFavouriteStatus(restaurant != null),
+                        throwable -> view.setFavouriteStatus(false));
+        compositeDisposable.add(d);
+
     }
 
     @Override
@@ -70,46 +72,48 @@ public class DetailsPresenter implements DetailsContract.Presenter {
         currentRestaurant.setCuisine(cuisine);
         currentRestaurant.setName(name);
         currentRestaurant.setTagline(tagLine);
-        compositeDisposable.add(
-                dataManager.updateRestaurant(currentRestaurant)
-                        .subscribeOn(backgroundScheduler)
-                        .observeOn(foregroundScheduler)
-                        .subscribe(() -> view.dismissWithMessage("Changes saved"),
-                                throwable -> view.dismissWithMessage("Unable to save. Try later"))
-        );
+
+        Disposable updateRestaurantDisposable = dataManager.updateRestaurant(currentRestaurant)
+                .subscribeOn(backgroundScheduler)
+                .observeOn(foregroundScheduler)
+                .subscribe(() -> view.dismissWithMessage("Changes saved"),
+                        throwable -> view.dismissWithMessage("Unable to save. Try later"));
+        compositeDisposable.add(updateRestaurantDisposable);
     }
 
     @Override
     public void onFavouriteTapped() {
-        compositeDisposable.add(
-                dataManager.getRestaurant(currentRestaurant.getSlug())
-                        .subscribeOn(backgroundScheduler)
-                        .observeOn(foregroundScheduler)
-                        .subscribe(this::deleteRestaurant,
-                                throwable -> addRestaurant(currentRestaurant))
-        );
+
+        Disposable restaurantDisposable = dataManager.getRestaurant(currentRestaurant
+                .getSlug())
+                .subscribeOn(backgroundScheduler)
+                .observeOn(foregroundScheduler)
+                .subscribe(this::deleteRestaurant,
+                        throwable -> addRestaurant(currentRestaurant));
+        compositeDisposable.add(restaurantDisposable);
+
     }
 
     private void addRestaurant(Restaurant restaurant) {
-        compositeDisposable.add(
-                dataManager.favouriteRestaurant(restaurant)
-                        .subscribeOn(backgroundScheduler)
-                        .observeOn(foregroundScheduler)
-                        .subscribe(() -> view.setFavouriteStatus(true),
-                                throwable -> view.setFavouriteStatus(false)
-                        )
-        );
+
+        Disposable favDisposable = dataManager.favouriteRestaurant(restaurant)
+                .subscribeOn(backgroundScheduler)
+                .observeOn(foregroundScheduler)
+                .subscribe(() -> view.setFavouriteStatus(true),
+                        throwable -> view.setFavouriteStatus(false));
+
+        compositeDisposable.add(favDisposable);
     }
 
     private void deleteRestaurant(Restaurant restaurant) {
-        compositeDisposable.add(
-                dataManager.deleteRestaurant(restaurant)
-                        .subscribeOn(backgroundScheduler)
-                        .observeOn(foregroundScheduler)
-                        .subscribe(() -> view.setFavouriteStatus(false),
-                                throwable -> view.setFavouriteStatus(true)
-                        )
-        );
+
+        Disposable deleteDisposable = dataManager.deleteRestaurant(restaurant)
+                .subscribeOn(backgroundScheduler)
+                .observeOn(foregroundScheduler)
+                .subscribe(() -> view.setFavouriteStatus(false),
+                        throwable -> view.setFavouriteStatus(true));
+
+        compositeDisposable.add(deleteDisposable);
     }
 
 
